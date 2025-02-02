@@ -6,7 +6,7 @@ import UserProfile from './components/UserProfile';
 import SearchPage from './components/SearchPage';
 import SearchPhotoPage from './components/SearchPhotoPage';
 import PostsPage from './components/PostsPage';
-import CreatePostPage from './components/CreatePostPage';
+// import CreatePostPage from './components/CreatePostPage';
 import UserDetails from './components/UserDetails';
 
 interface RoutesConfigProps {
@@ -22,7 +22,7 @@ const RoutesConfig: React.FC<RoutesConfigProps> = ({ setLoggedIn }) => (
         <Route path="/user-details/:userId" element={<UserDetails />} />
         <Route path="/search-photo" element={<SearchPhotoPage />} />
         <Route path="/posts" element={<PostsPage />} />
-        <Route path="/create-post" element={<CreatePostPage />} />
+        {/* <Route path="/create-post" element={<CreatePostPage />} /> */}
     </Routes>
 );
 

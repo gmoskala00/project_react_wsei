@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'https://jsonplaceholder.typicode.com';
+const API_URL = 'https://my-json-server.typicode.com/gmoskala00/project_react_wsei';
 
 export interface User {
     id: number;
@@ -50,8 +50,9 @@ export interface Comment {
 export interface CreatePostPayload {
     title: string;
     body: string;
-    username: string;
+    userId: number;
 }
+
 
 export const getUsers = () => axios.get<User[]>(`${API_URL}/users`);
 export const getPosts = () => axios.get<Post[]>(`${API_URL}/posts`);
