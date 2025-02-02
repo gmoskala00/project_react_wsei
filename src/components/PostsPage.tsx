@@ -6,6 +6,7 @@ import {
     addComment,
     addPost,
     deletePost,
+    deleteComment,
     Post,
     User,
     Comment
@@ -86,6 +87,26 @@ const PostsPage: React.FC = () => {
             });
         }
     };
+
+    // Funkcja usuwająca komentarz na podstawie indeksu
+    const handleDeleteComment = (postId: number, commentIndex: number) => {
+        // Pobieramy id komentarza, które zostanie wysłane do API (nawet jeśli jest ono nieunikalne)
+        const commentToDelete = comments[postId][commentIndex];
+        deleteComment(commentToDelete.id)
+            .then(() => {
+                // Aktualizujemy stan usuwając komentarz o danym indeksie
+                setComments((prev) => {
+                    const newComments = [...prev[postId]];
+                    newComments.splice(commentIndex, 1);
+                    return { ...prev, [postId]: newComments };
+                });
+            })
+            .catch((error) => {
+                console.error("Error deleting comment: ", error);
+            });
+    };
+
+
 
     const handleCreatePost = () => {
         if (!newPostTitle || !newPostBody) {
@@ -189,14 +210,27 @@ const PostsPage: React.FC = () => {
                                     <h3>Komentarze</h3>
                                     <ul style={styles.commentList}>
                                         {comments[post.id] && comments[post.id].length > 0 ? (
-                                            comments[post.id].map((comment) => (
-                                                <li key={comment.id} style={styles.commentItem}>
-                                                    <p>{comment.body}</p>
-                                                    <small>— {comment.name}</small>
+                                            comments[post.id].map((comment, index) => (
+                                                <li key={index} style={styles.commentItem}>
+                                                    <div style={styles.commentContent}>
+                                                        <p style={{ margin: 0 }}>{comment.body}</p>
+                                                        {loggedUser &&
+                                                            comment.email === `${loggedUser}@example.com` && (
+                                                                <button
+                                                                    style={styles.deleteCommentButton}
+                                                                    onClick={() => handleDeleteComment(post.id, index)}
+                                                                >
+                                                                    ×
+                                                                </button>
+                                                            )}
+                                                    </div>
+                                                    <small>— {comment.name}, {comment.email}</small>
                                                 </li>
                                             ))
                                         ) : (
-                                            <li style={styles.commentItem}><p>Brak komentarzy</p></li>
+                                            <li style={styles.commentItem}>
+                                                <p>Brak komentarzy</p>
+                                            </li>
                                         )}
                                     </ul>
                                     {loggedUser && (
@@ -259,6 +293,11 @@ const styles: { [key: string]: React.CSSProperties } = {
         backgroundColor: '#e9ecef',
         borderRadius: '5px',
     },
+    commentContent: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
     input: {
         padding: '8px',
         marginTop: '10px',
@@ -288,6 +327,13 @@ const styles: { [key: string]: React.CSSProperties } = {
         color: '#fff',
         border: 'none',
         borderRadius: '5px',
+        cursor: 'pointer',
+    },
+    deleteCommentButton: {
+        background: 'none',
+        border: 'none',
+        color: '#dc3545',
+        fontSize: '16px',
         cursor: 'pointer',
     },
     createPostContainer: {

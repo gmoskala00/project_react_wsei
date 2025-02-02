@@ -1,26 +1,51 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getUsers, getPosts, getPhotos, User, Post, Photo } from '../services/api';
+import {
+    getUsers,
+    getPosts,
+    getPhotos,
+    getAlbums,
+    User,
+    Post,
+    Photo,
+    // Możesz dodać typ Album, jeśli go zdefiniowałeś w api.ts
+} from '../services/api';
 
 const UserDetails: React.FC = () => {
     const { userId } = useParams<{ userId: string }>();
     const [user, setUser] = useState<User | null>(null);
     const [posts, setPosts] = useState<Post[]>([]);
     const [photos, setPhotos] = useState<Photo[]>([]);
+    const [albums, setAlbums] = useState<any[]>([]); // Jeśli masz interfejs Album, możesz użyć: useState<Album[]>([])
 
     useEffect(() => {
-        getUsers().then((response) => {
-            const currentUser = response.data.find((u) => u.id === parseInt(userId || ''));
-            setUser(currentUser || null);
-        });
+        if (userId) {
+            const userIdNum = parseInt(userId, 10);
 
-        getPosts().then((response) =>
-            setPosts(response.data.filter((post) => post.userId === parseInt(userId || '')))
-        );
+            // Pobranie danych użytkownika
+            getUsers().then((response) => {
+                const currentUser = response.data.find((u) => u.id === userIdNum);
+                setUser(currentUser || null);
+            });
 
-        getPhotos().then((response) =>
-            setPhotos(response.data.filter((photo) => photo.albumId === parseInt(userId || '')))
-        );
+            // Pobranie postów użytkownika
+            getPosts().then((response) => {
+                setPosts(response.data.filter((post) => post.userId === userIdNum));
+            });
+
+            // Pobranie albumów użytkownika, a następnie zdjęć z tych albumów
+            getAlbums().then((response) => {
+                const userAlbums = response.data.filter((album) => album.userId === userIdNum);
+                setAlbums(userAlbums);
+
+                getPhotos().then((photosResponse) => {
+                    const userPhotos = photosResponse.data.filter((photo: Photo) =>
+                        userAlbums.some((album: any) => album.id === photo.albumId)
+                    );
+                    setPhotos(userPhotos);
+                });
+            });
+        }
     }, [userId]);
 
     if (!user) return <p>Loading...</p>;
@@ -30,11 +55,24 @@ const UserDetails: React.FC = () => {
             <h1>{user.name}'s Profile</h1>
             <h2>Details</h2>
             <ul style={styles.details}>
-                <li><strong>Email:</strong> {user.email}</li>
-                <li><strong>Phone:</strong> {user.phone}</li>
-                <li><strong>Website:</strong> {user.website}</li>
-                <li><strong>Address:</strong> {user.address?.street}, {user.address?.city}</li>
-                <li><strong>Company:</strong> {user.company?.name}</li>
+                <li>
+                    <strong>Login:</strong> {user.username}
+                </li>
+                <li>
+                    <strong>Email:</strong> {user.email}
+                </li>
+                <li>
+                    <strong>Phone:</strong> {user.phone}
+                </li>
+                <li>
+                    <strong>Website:</strong> {user.website}
+                </li>
+                <li>
+                    <strong>Address:</strong> {user.address?.street}, {user.address?.city}
+                </li>
+                <li>
+                    <strong>Company:</strong> {user.company?.name}
+                </li>
             </ul>
 
             <h2>Posts</h2>

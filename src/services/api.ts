@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'https://my-json-server.typicode.com/gmoskala00/project_react_wsei';
+const API_URL = 'https://jsonplaceholder.typicode.com/';
 
 export interface User {
     id: number;

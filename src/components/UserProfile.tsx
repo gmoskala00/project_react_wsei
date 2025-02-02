@@ -27,20 +27,17 @@ const UserProfile: React.FC = () => {
 
     useEffect(() => {
         if (user?.id) {
-            // Pobierz posty użytkownika
             getPosts()
                 .then((response) => {
                     setPosts(response.data.filter((post) => post.userId === user.id));
                 })
                 .finally(() => setLoadingPosts(false));
 
-            // Pobierz albumy użytkownika i zdjęcia
             getAlbums()
                 .then((response) => {
                     const userAlbums = response.data.filter((album) => album.userId === user.id);
-                    setAlbums(userAlbums); // Ustaw albumy użytkownika
+                    setAlbums(userAlbums);
 
-                    // Pobierz zdjęcia z tych albumów
                     return getPhotos().then((response) => {
                         const userPhotos = response.data.filter((photo) =>
                             userAlbums.some((album) => album.id === photo.albumId)
