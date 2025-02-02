@@ -1,53 +1,80 @@
 import React, { useEffect, useState } from 'react';
-import { getPhotos, getUsers, addPhoto, deletePhoto } from '../services/api';
+import { getPhotos, getUsers, getAlbums, addPhoto, deletePhoto, Photo, User, Album } from '../services/api';
 
-const FeedPage = () => {
-    const [photos, setPhotos] = useState([]);
-    const [users, setUsers] = useState([]);
-    const [selectedUser, setSelectedUser] = useState('');
-    const [newPhoto, setNewPhoto] = useState('');
-    const [loading, setLoading] = useState(true);
+const FeedPage: React.FC = () => {
+    const [photos, setPhotos] = useState<Photo[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
+    const [albums, setAlbums] = useState<Album[]>([]);
+    const [selectedUser, setSelectedUser] = useState<string>('');
+    const [newPhoto, setNewPhoto] = useState<string>('');
+    const [newPhotoTitle, setNewPhotoTitle] = useState<string>('');
+    const [loading, setLoading] = useState<boolean>(true);
     const loggedUser = localStorage.getItem('user');
 
     useEffect(() => {
-        Promise.all([getPhotos(), getUsers()])
-            .then(([photosResponse, usersResponse]) => {
+        Promise.all([getPhotos(), getUsers(), getAlbums()]).then(
+            ([photosResponse, usersResponse, albumsResponse]) => {
                 setPhotos(photosResponse.data);
                 setUsers(usersResponse.data);
-                setLoading(false); // Wyłącz ładowanie po zakończeniu pobierania danych
-            });
+                setAlbums(albumsResponse.data); // Load albums
+                setLoading(false);
+            }
+        );
     }, []);
 
+    // Filter photos based on selected user
     const filteredPhotos = photos.filter((photo) => {
         if (selectedUser) {
-            return users.find((user) => user.id === photo.albumId && user.username === selectedUser);
+            const userAlbums = albums.filter(
+                (album) => album.userId === users.find((user) => user.username === selectedUser)?.id
+            );
+            return userAlbums.some((album) => album.id === photo.albumId);
         }
         return true;
     });
 
     const handleAddPhoto = () => {
-        if (!newPhoto) {
-            alert('Please enter a photo URL');
+        if (!newPhoto || !newPhotoTitle) {
+            alert('Please enter a photo URL and title.');
             return;
         }
+
         const userId = users.find((user) => user.username === loggedUser)?.id;
         if (!userId) {
             alert('User not found!');
             return;
         }
 
-        addPhoto({ title: 'New Photo', url: newPhoto, albumId: userId }).then(() => {
-            setPhotos((prev) => [...prev, { title: 'New Photo', url: newPhoto, albumId: userId }]);
+        addPhoto({ title: newPhotoTitle, url: newPhoto, albumId: userId }).then((response) => {
+            setPhotos((prev) => [...prev, response.data]);
             setNewPhoto('');
+            setNewPhotoTitle('');
         });
     };
 
-    const handleDeletePhoto = (photoId) => {
-        const userId = users.find((user) => user.username === loggedUser)?.id;
+    const handleDeletePhoto = (photoId: number) => {
+        // Get the logged-in user
+        const loggedInUser = users.find((user) => user.username === loggedUser);
+
+        if (!loggedInUser) {
+            alert('User not found!');
+            return;
+        }
+
+        // Find the photo to delete
         const photo = photos.find((photo) => photo.id === photoId);
 
-        if (photo.albumId !== userId) {
-            alert('You can only delete your own photos!');
+        if (!photo) {
+            alert('Photo not found!');
+            return;
+        }
+
+        const albumOwner = users.find(
+            (user) => user.id === albums.find((album) => album.id === photo.albumId)?.userId
+        );
+
+        if (!albumOwner || albumOwner.id !== loggedInUser.id) {
+            alert('You can only delete photos from your own albums!');
             return;
         }
 
@@ -61,7 +88,6 @@ const FeedPage = () => {
     return (
         <div>
             <h1>Feed</h1>
-            {/* Filtrowanie po użytkowniku */}
             <select
                 value={selectedUser}
                 onChange={(e) => setSelectedUser(e.target.value)}
@@ -75,9 +101,15 @@ const FeedPage = () => {
                 ))}
             </select>
 
-            {/* Dodawanie zdjęcia */}
             {loggedUser && (
                 <>
+                    <input
+                        type="text"
+                        placeholder="Photo Title"
+                        value={newPhotoTitle}
+                        onChange={(e) => setNewPhotoTitle(e.target.value)}
+                        style={styles.input}
+                    />
                     <input
                         type="text"
                         placeholder="New Photo URL"
@@ -91,20 +123,21 @@ const FeedPage = () => {
                 </>
             )}
 
-            {/* Wyświetlanie zdjęć */}
             <ul style={styles.photoList}>
                 {filteredPhotos.map((photo) => (
                     <li key={photo.id} style={styles.photoItem}>
                         <img src={photo.url} alt={photo.title} style={styles.photo} />
                         <p>{photo.title}</p>
-                        {loggedUser && users.find((user) => user.username === loggedUser)?.id === photo.albumId && (
-                            <button
-                                onClick={() => handleDeletePhoto(photo.id)}
-                                style={styles.deleteButton}
-                            >
-                                Delete
-                            </button>
-                        )}
+                        {loggedUser &&
+                            users.find((user) => user.username === loggedUser)?.id ===
+                            albums.find((album) => album.id === photo.albumId)?.userId && (
+                                <button
+                                    onClick={() => handleDeletePhoto(photo.id)}
+                                    style={styles.deleteButton}
+                                >
+                                    Delete
+                                </button>
+                            )}
                     </li>
                 ))}
             </ul>
@@ -112,7 +145,7 @@ const FeedPage = () => {
     );
 };
 
-const styles = {
+const styles: { [key: string]: React.CSSProperties } = {
     select: {
         padding: '10px',
         margin: '10px 5px',

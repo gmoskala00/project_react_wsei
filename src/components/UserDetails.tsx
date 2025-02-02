@@ -1,26 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom'; // Pobranie userId z URL
-import { getUsers, getPosts, getPhotos } from '../services/api';
+import { useParams } from 'react-router-dom';
+import { getUsers, getPosts, getPhotos, User, Post, Photo } from '../services/api';
 
-const UserDetails = () => {
-    const { userId } = useParams(); // Pobierz userId z trasy
-    const [user, setUser] = useState(null);
-    const [posts, setPosts] = useState([]);
-    const [photos, setPhotos] = useState([]);
+const UserDetails: React.FC = () => {
+    const { userId } = useParams<{ userId: string }>();
+    const [user, setUser] = useState<User | null>(null);
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [photos, setPhotos] = useState<Photo[]>([]);
 
     useEffect(() => {
-        // Pobierz dane użytkownika, posty i zdjęcia
         getUsers().then((response) => {
-            const currentUser = response.data.find((u) => u.id === parseInt(userId));
-            setUser(currentUser);
+            const currentUser = response.data.find((u) => u.id === parseInt(userId || ''));
+            setUser(currentUser || null);
         });
 
         getPosts().then((response) =>
-            setPosts(response.data.filter((post) => post.userId === parseInt(userId)))
+            setPosts(response.data.filter((post) => post.userId === parseInt(userId || '')))
         );
 
         getPhotos().then((response) =>
-            setPhotos(response.data.filter((photo) => photo.albumId === parseInt(userId)))
+            setPhotos(response.data.filter((photo) => photo.albumId === parseInt(userId || '')))
         );
     }, [userId]);
 
@@ -61,7 +60,7 @@ const UserDetails = () => {
     );
 };
 
-const styles = {
+const styles: { [key: string]: React.CSSProperties } = {
     container: {
         maxWidth: '800px',
         margin: '0 auto',

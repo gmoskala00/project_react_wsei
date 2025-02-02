@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getUsers } from '../services/api';
+import { getUsers, User } from '../services/api';
 
-const SearchPage = () => {
-    const [users, setUsers] = useState([]);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [loading, setLoading] = useState(true); // Stan ładowania
+const SearchPage: React.FC = () => {
+    const [users, setUsers] = useState<User[]>([]);
+    const [searchTerm, setSearchTerm] = useState<string>('');
+    const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
         getUsers().then((response) => {
             setUsers(response.data);
-            setLoading(false); // Wyłącz ładowanie po pobraniu danych
+            setLoading(false);
         });
     }, []);
 
@@ -29,7 +29,7 @@ const SearchPage = () => {
                 style={styles.input}
             />
             {loading ? (
-                <p style={styles.loading}>Loading...</p> // Labelka ładowania
+                <p style={styles.loading}>Loading...</p>
             ) : (
                 <ul style={styles.list}>
                     {filteredUsers.map((user) => (
@@ -51,7 +51,7 @@ const SearchPage = () => {
     );
 };
 
-const styles = {
+const styles: { [key: string]: React.CSSProperties } = {
     container: {
         maxWidth: '800px',
         margin: '0 auto',

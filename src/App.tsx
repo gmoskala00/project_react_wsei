@@ -3,11 +3,10 @@ import RoutesConfig from './routes';
 import Header from './components/Header';
 import './App.css';
 
-const App = () => {
-  const [isLoggedIn, setLoggedIn] = useState(false);
+const App: React.FC = () => {
+  const [isLoggedIn, setLoggedIn] = useState<boolean>(false);
 
   useEffect(() => {
-    // Sprawdź, czy użytkownik jest zapisany w localStorage
     const user = localStorage.getItem('user');
     if (user) {
       setLoggedIn(true);

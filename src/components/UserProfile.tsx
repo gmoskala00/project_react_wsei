@@ -1,28 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Do przekierowania niezalogowanych użytkowników
-import { getUsers, getPosts, getPhotos } from '../services/api';
+import { useNavigate } from 'react-router-dom';
+import { getUsers, getPosts, getPhotos, getAlbums, User, Post, Photo, Album } from '../services/api';
 
-const UserProfile = () => {
-    const [user, setUser] = useState(null);
-    const [posts, setPosts] = useState([]);
-    const [photos, setPhotos] = useState([]);
-    const [loadingPosts, setLoadingPosts] = useState(true);
-    const [loadingPhotos, setLoadingPhotos] = useState(true);
+const UserProfile: React.FC = () => {
+    const [user, setUser] = useState<User | null>(null);
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [photos, setPhotos] = useState<Photo[]>([]);
+    const [albums, setAlbums] = useState<Album[]>([]);
+    const [loadingPosts, setLoadingPosts] = useState<boolean>(true);
+    const [loadingPhotos, setLoadingPhotos] = useState<boolean>(true);
     const navigate = useNavigate();
 
-    // Pobierz zalogowanego użytkownika
     const loggedUser = localStorage.getItem('user');
 
     useEffect(() => {
         if (!loggedUser) {
-            navigate('/'); // Przekieruj na stronę logowania, jeśli użytkownik nie jest zalogowany
+            navigate('/');
             return;
         }
 
-        // Pobierz dane użytkownika
         getUsers().then((response) => {
             const currentUser = response.data.find((u) => u.username === loggedUser);
-            setUser(currentUser);
+            setUser(currentUser || null);
         });
     }, [loggedUser, navigate]);
 
@@ -33,14 +32,23 @@ const UserProfile = () => {
                 .then((response) => {
                     setPosts(response.data.filter((post) => post.userId === user.id));
                 })
-                .finally(() => setLoadingPosts(false)); // Wyłącz wskaźnik ładowania postów
+                .finally(() => setLoadingPosts(false));
 
-            // Pobierz zdjęcia użytkownika
-            getPhotos()
+            // Pobierz albumy użytkownika i zdjęcia
+            getAlbums()
                 .then((response) => {
-                    setPhotos(response.data.filter((photo) => photo.albumId === user.id));
+                    const userAlbums = response.data.filter((album) => album.userId === user.id);
+                    setAlbums(userAlbums); // Ustaw albumy użytkownika
+
+                    // Pobierz zdjęcia z tych albumów
+                    return getPhotos().then((response) => {
+                        const userPhotos = response.data.filter((photo) =>
+                            userAlbums.some((album) => album.id === photo.albumId)
+                        );
+                        setPhotos(userPhotos);
+                    });
                 })
-                .finally(() => setLoadingPhotos(false)); // Wyłącz wskaźnik ładowania zdjęć
+                .finally(() => setLoadingPhotos(false));
         }
     }, [user?.id]);
 
@@ -60,7 +68,7 @@ const UserProfile = () => {
 
             <h2>Your Posts</h2>
             {loadingPosts ? (
-                <p>Loading posts...</p> // Wskaźnik ładowania postów
+                <p>Loading posts...</p>
             ) : (
                 <ul style={styles.list}>
                     {posts.map((post) => (
@@ -74,7 +82,7 @@ const UserProfile = () => {
 
             <h2>Your Photos</h2>
             {loadingPhotos ? (
-                <p>Loading photos...</p> // Wskaźnik ładowania zdjęć
+                <p>Loading photos...</p>
             ) : (
                 <ul style={styles.photoList}>
                     {photos.map((photo) => (
@@ -89,7 +97,7 @@ const UserProfile = () => {
     );
 };
 
-const styles = {
+const styles: { [key: string]: React.CSSProperties } = {
     container: {
         maxWidth: '800px',
         margin: '0 auto',

@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { addPost } from '../services/api';
 
-const CreatePostPage = () => {
-    const [title, setTitle] = useState('');
-    const [body, setBody] = useState('');
+const CreatePostPage: React.FC = () => {
+    const [title, setTitle] = useState<string>('');
+    const [body, setBody] = useState<string>('');
     const navigate = useNavigate();
 
-    const loggedUser = localStorage.getItem('user'); // Pobierz nazwę użytkownika z localStorage
+    const loggedUser = localStorage.getItem('user');
 
     const handleCreatePost = () => {
         if (!title || !body) {
@@ -21,8 +21,8 @@ const CreatePostPage = () => {
             return;
         }
 
-        addPost({ title, body, username: loggedUser }).then(() => {
-            navigate('/posts'); // Przekieruj na stronę postów po utworzeniu
+        addPost({ title, body, username: loggedUser || '' }).then(() => {
+            navigate('/posts');
         });
     };
 

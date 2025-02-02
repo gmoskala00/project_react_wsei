@@ -1,22 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const LoginPage = ({ setLoggedIn }) => {
-    const [username, setUsername] = useState('');
+interface LoginPageProps {
+    setLoggedIn: (loggedIn: boolean) => void;
+}
+
+const LoginPage: React.FC<LoginPageProps> = ({ setLoggedIn }) => {
+    const [username, setUsername] = useState<string>('');
     const navigate = useNavigate();
 
     useEffect(() => {
         const loggedUser = localStorage.getItem('user');
         if (loggedUser) {
-            navigate('/feed'); // Jeśli użytkownik jest zalogowany, przekieruj na stronę feedu
+            navigate('/feed');
         }
     }, [navigate]);
 
     const handleLogin = () => {
         if (username) {
-            localStorage.setItem('user', username); // Zapisz użytkownika w localStorage
-            setLoggedIn(true); // Ustaw stan zalogowania
-            navigate('/feed'); // Przekieruj na stronę feedu
+            localStorage.setItem('user', username);
+            setLoggedIn(true);
+            navigate('/feed');
         } else {
             alert('Please enter a username.');
         }

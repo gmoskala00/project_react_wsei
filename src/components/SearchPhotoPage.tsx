@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { getPhotos } from '../services/api';
+import { getPhotos, Photo } from '../services/api';
 
-const SearchPhotoPage = () => {
-    const [photos, setPhotos] = useState([]);
-    const [photoId, setPhotoId] = useState('');
-    const [albumId, setAlbumId] = useState('');
-    const [loading, setLoading] = useState(true); // Dodanie wskaźnika ładowania
+const SearchPhotoPage: React.FC = () => {
+    const [photos, setPhotos] = useState<Photo[]>([]);
+    const [photoId, setPhotoId] = useState<string>('');
+    const [albumId, setAlbumId] = useState<string>('');
+    const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
         getPhotos()
             .then((response) => {
                 setPhotos(response.data);
-                setLoading(false); // Wyłącz wskaźnik ładowania po pobraniu danych
+                setLoading(false);
             })
             .catch(() => {
-                setLoading(false); // Wyłącz wskaźnik nawet w przypadku błędu
+                setLoading(false); // Even if there's an error, disable loading state
             });
     }, []);
 
@@ -49,6 +49,7 @@ const SearchPhotoPage = () => {
                     {filteredPhotos.map((photo) => (
                         <li key={photo.id} style={styles.photoItem}>
                             <img src={photo.url} alt={photo.title} style={styles.photo} />
+                            <p>{photo.title}</p>
                         </li>
                     ))}
                 </ul>
@@ -57,7 +58,7 @@ const SearchPhotoPage = () => {
     );
 };
 
-const styles = {
+const styles: { [key: string]: React.CSSProperties } = {
     container: {
         maxWidth: '800px',
         margin: '0 auto',

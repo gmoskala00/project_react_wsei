@@ -1,17 +1,22 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-const Header = ({ isLoggedIn, setLoggedIn }) => {
+interface HeaderProps {
+    isLoggedIn: boolean;
+    setLoggedIn: (loggedIn: boolean) => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ isLoggedIn, setLoggedIn }) => {
     const navigate = useNavigate();
 
     const handleLogout = () => {
-        localStorage.removeItem('user'); // Usuń dane użytkownika z localStorage
-        setLoggedIn(false); // Zmień stan na niezalogowany
-        navigate('/'); // Przekieruj na stronę logowania
+        localStorage.removeItem('user');
+        setLoggedIn(false);
+        navigate('/');
     };
 
     const handleLogin = () => {
-        navigate('/'); // Przekieruj na stronę logowania
+        navigate('/');
     };
 
     return (

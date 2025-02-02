@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { getComments, addComment, deleteComment } from '../services/api';
+import { getComments, addComment, deleteComment, Comment } from '../services/api';
 
-const CommentsPage = ({ postId }) => {
-    const [comments, setComments] = useState([]);
-    const [newComment, setNewComment] = useState('');
+interface CommentsPageProps {
+    postId: number;
+}
+
+const CommentsPage: React.FC<CommentsPageProps> = ({ postId }) => {
+    const [comments, setComments] = useState<Comment[]>([]);
+    const [newComment, setNewComment] = useState<string>('');
     const loggedUser = localStorage.getItem('user');
 
     useEffect(() => {
@@ -11,13 +15,13 @@ const CommentsPage = ({ postId }) => {
     }, [postId]);
 
     const handleAddComment = () => {
-        addComment({ postId, body: newComment, name: loggedUser }).then((response) => {
+        addComment({ postId, body: newComment, name: loggedUser || '' }).then((response) => {
             setComments([...comments, response.data]);
             setNewComment('');
         });
     };
 
-    const handleDeleteComment = (commentId) => {
+    const handleDeleteComment = (commentId: number) => {
         deleteComment(commentId).then(() => {
             setComments(comments.filter((comment) => comment.id !== commentId));
         });
